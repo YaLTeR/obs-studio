@@ -124,37 +124,47 @@ namespace XCompcap
 			return res;
 		}
 
-		Atom netClList = XInternAtom(disp(), "_NET_CLIENT_LIST", true);
-		Atom actualType;
-		int format;
-		unsigned long num, bytes;
-		Window* data = 0;
+		// Atom netClList = XInternAtom(disp(), "_NET_CLIENT_LIST", true);
+		// Atom actualType;
+		// int format;
+		// unsigned long num, bytes;
+		// Window* data = 0;
 
 		for (int i = 0; i < ScreenCount(disp()); ++i) {
 			Window rootWin = RootWindow(disp(), i);
 
-			int status = XGetWindowProperty(
-							 disp(),
-							 rootWin,
-							 netClList,
-							 0L,
-							 ~0L,
-							 false,
-							 AnyPropertyType,
-							 &actualType,
-							 &format,
-							 &num,
-							 &bytes,
-							 (uint8_t**)&data);
+			// int status = XGetWindowProperty(
+			//                                  disp(),
+			//                                  rootWin,
+			//                                  netClList,
+			//                                  0L,
+			//                                  ~0L,
+			//                                  false,
+			//                                  AnyPropertyType,
+			//                                  &actualType,
+			//                                  &format,
+			//                                  &num,
+			//                                  &bytes,
+			//                                  (uint8_t**)&data);
+                        // 
+			// if (status != Success) {
+			//         blog(LOG_WARNING, "Failed getting root "
+			//                           "window properties");
+			//         continue;
+			// }
 
-			if (status != Success) {
-				blog(LOG_WARNING, "Failed getting root "
-				                  "window properties");
+			Window* data, root, parent;
+			unsigned int num;
+			int status = XQueryTree(disp(), rootWin, &root, &parent, &data, &num);
+
+			if (status == 0) {
+				blog(LOG_WARNING, "Failed enumerating root window children");
 				continue;
 			}
 
 			for (unsigned long i = 0; i < num; ++i)
-				res.push_back(data[i]);
+				if (getWindowName(data[i]) != "error")
+					res.push_back(data[i]);
 
 			XFree(data);
 		}
